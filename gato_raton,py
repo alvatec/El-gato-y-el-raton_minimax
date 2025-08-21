@@ -1,0 +1,66 @@
+# El gato y el raton en un juego de supervivencia, supremacia.
+import random
+
+SIZE = 5
+CAT_START = (0, 0)
+MOUSE_START = (4, 4)
+MAX_TURNS = 30
+DIRS = [(1,0),(-1,0),(0,1),(0,-1)]
+
+random.seed(0)  # reproducible
+
+def render(cat, mouse, turn):
+    print(f"Turno {turn} | Distancia: {manhattan(cat, mouse)}")
+    for y in range(SIZE):
+        fila = []
+        for x in range(SIZE):
+            if (x, y) == cat:
+                fila.append('G')
+            elif (x, y) == mouse:
+                fila.append('R')
+            else:
+                fila.append('.')
+        print(' '.join(fila))
+    print()
+
+def vecinos(p):
+    x, y = p
+    for dx, dy in DIRS:
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < SIZE and 0 <= ny < SIZE:
+            yield (nx, ny)
+
+def manhattan(a, b):
+    return abs(a[0]-b[0]) + abs(a[1]-b[1])
+
+def mouse_move_random(cat, mouse):
+    moves = [m for m in vecinos(mouse) if m != cat] or [mouse]
+    return random.choice(moves)
+
+def cat_move_greedy(cat, mouse):
+    best = cat
+    bestd = manhattan(cat, mouse)
+    for c in vecinos(cat):
+        d = manhattan(c, mouse)
+        if d < bestd:
+            best, bestd = c, d
+    return best
+
+if __name__ == "__main__":
+    cat = CAT_START
+    mouse = MOUSE_START
+    turn = 0
+    while turn < MAX_TURNS and cat != mouse:
+        render(cat, mouse, turn)
+        # Mueve el ratón
+        mouse = mouse_move_random(cat, mouse)
+        if cat == mouse: break
+        # Mueve el gato
+        cat = cat_move_greedy(cat, mouse)
+        turn += 1
+
+    render(cat, mouse, turn)
+    if cat == mouse:
+        print("¡El gato atrapó al ratón!")
+    else:
+        print("El ratón sobrevivió. ¡Gana el ratón!")
